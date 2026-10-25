@@ -11,7 +11,7 @@
 [![GitHub License](https://img.shields.io/github/license/andrewjswan/alert-map-proxy-addon?color=blue)](https://github.com/andrewjswan/alert-map-proxy-addon/blob/master/LICENSE)
 [![StandWithUkraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/badges/StandWithUkraine.svg)](https://github.com/vshymanskyy/StandWithUkraine/blob/main/docs/README.md)
 
-**Alert Map Proxy Server** A lightweight connector that tracks air raid sirens and tactical threat data across Ukraine in real time. It automatically processes live information from the data feed and converts it into a clean, simple format perfect for integration with `Home Assistant` or custom smart home dashboards. 
+**Alert Map Proxy Server** A lightweight connector that tracks air raid sirens and tactical threat data across Ukraine in real time. It automatically processes live information from the data feed and converts it into a clean, simple format perfect for integration with `Home Assistant` or custom smart home dashboards.
 
 ## Architecture
 
@@ -28,6 +28,7 @@ Add the repository URL under **Supervisor → Add-on Store** in your Home Assist
 ## Data sources (providers):
 
 > [!IMPORTANT]
+>
 > - **JAAM** [jaam.net.ua](https://jaam.net.ua/)
 > - **Neptun** [neptun.in.ua](https://neptun.in.ua/)
 > - **REST** [ubilling.net.ua](https://ubilling.net.ua/)
