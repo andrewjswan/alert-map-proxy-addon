@@ -1,0 +1,11 @@
+configuration:
+  provider:
+    name: Провайдер
+    description: Джерело даних
+
+  use_aggregation:
+    name: Агрегація
+    description: Аналіз всіх ідентифікаторів у блоці провінції
+
+  log_level:
+    name: Рівень журналу

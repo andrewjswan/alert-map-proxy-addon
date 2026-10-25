@@ -1,0 +1,1 @@
+"""Alert Map Proxy Server - JAAM Provider."""

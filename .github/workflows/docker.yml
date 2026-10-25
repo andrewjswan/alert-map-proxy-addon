@@ -1,0 +1,92 @@
+name: Alert Map Proxy / Docker
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: alert-map-proxy-addon
+
+jobs:
+  init:
+    name: App / Init
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.yaml.outputs.version }}
+      architectures: ${{ steps.info.outputs.architectures }}
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    permissions:
+      contents: read
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v7
+
+      - name: Get Version from Config
+        uses: christian-ci/action-yaml-github-output@v2
+        id: yaml
+        with:
+          file_path: ${{ github.workspace }}/alert-map-proxy/config.yaml
+
+      - name: Get App Information
+        id: info
+        uses: home-assistant/actions/helpers/info@master
+        with:
+          path: "./alert-map-proxy"
+
+      - name: Get build matrix
+        id: matrix
+        uses: home-assistant/builder/actions/prepare-multi-arch-matrix@2026.06.0
+        with:
+          architectures: ${{ steps.info.outputs.architectures }}
+          image-name: ${{ env.IMAGE_NAME }}
+
+  docker:
+    name: Docker / Build ${{ matrix.arch }}
+    needs:
+      - init
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.init.outputs.matrix) }}
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v7
+
+      - name: Build Test Image
+        uses: home-assistant/builder/actions/build-image@2026.06.0
+        with:
+          arch: ${{ matrix.arch }}
+          image: ${{ matrix.image }}
+          version: ${{ needs.init.outputs.version }}
+          image-tags: |
+            ${{ needs.init.outputs.version }}
+            latest
+          push: true
+          cosign: true
+          cache-gha: false
+          context: ./alert-map-proxy
+          container-registry-password: ${{ secrets.GITHUB_TOKEN }}
+
+  manifest:
+    name: Publish multi-arch manifest
+    needs:
+      - init
+      - docker
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      packages: write
+    steps:
+      - name: Publish multi-arch manifest
+        uses: home-assistant/builder/actions/publish-multi-arch-manifest@2026.06.0
+        with:
+          architectures: ${{ needs.init.outputs.architectures }}
+          container-registry-password: ${{ secrets.GITHUB_TOKEN }}
+          image-name: ${{ env.IMAGE_NAME }}
+          image-tags: |
+            ${{ needs.init.outputs.version }}
+            latest

@@ -1,0 +1,48 @@
+---
+name: Alert Map Proxy
+version: 2026.10.9
+slug: alert-map-proxy
+description: Alert Map Proxy Server
+url: https://github.com/andrewjswan/alert-map-proxy-addon/
+
+arch:
+  - amd64
+  - aarch64
+
+image: ghcr.io/andrewjswan/alert-map-proxy-addon
+
+startup: services
+boot: auto
+init: false
+host_network: true
+
+ingress: true
+ingress_port: 5550
+
+map:
+  - all_addon_configs:rw
+  - config:rw
+  - share:rw
+  - ssl:rw
+
+homeassistant: 2025.1.0
+
+panel_icon: mdi:skull-outline
+panel_title: Alert Map Proxy
+
+ports:
+  5550/tcp: 5550
+
+ports_description:
+  5550/tcp: "Web Api"
+
+watchdog: "tcp://[HOST]:[PORT:5550]/ping"
+
+options:
+  provider: NEPTUN
+
+schema:
+  provider: list(JAAM|NEPTUN|REST)
+  alert_url: str?
+  use_aggregation: bool?
+  log_level: list(DEBUG|INFO|WARNING|ERROR|CRITICAL)?

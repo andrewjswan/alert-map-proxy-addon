@@ -1,0 +1,14 @@
+name: Workflow / Validate
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    name: 👻 Validation
+    uses: "andrewjswan/actions/.github/workflows/validate.yml@main"
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write

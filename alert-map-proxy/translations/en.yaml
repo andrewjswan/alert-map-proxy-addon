@@ -1,0 +1,11 @@
+configuration:
+  provider:
+    name: Provider
+    description: Data Provider
+
+  use_aggregation:
+    name: Aggregation
+    description: Scan across all IDs in the province block
+
+  log_level:
+    name: Log Level

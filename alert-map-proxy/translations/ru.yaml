@@ -1,0 +1,11 @@
+configuration:
+  provider:
+    name: Провайдер
+    description: Источник данных
+
+  use_aggregation:
+    name: Агрегация
+    description: Перебрать все идентификаторы в блоке области
+
+  log_level:
+    name: Уровень лога
