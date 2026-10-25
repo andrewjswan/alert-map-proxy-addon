@@ -136,7 +136,7 @@ USE_AGGREGATION = os.environ.get("USE_AGGREGATION", "True").strip().lower() in (
 class SuppressWsgiFilter(logging.Filter):
     """Filter to suppress aggressive background HTTP traffic logs."""
 
-    def filter(self, record: logging.LogRecord) -> bool:
+    def filter(self: "SuppressWsgiFilter", record: logging.LogRecord) -> bool:
         """Supress WSGI messages in Debug Log."""
         # Drop logs if they contain standard web request markers or the consumer user-agent
         return not (record.name == "wsgi" and record.levelno <= logging.INFO)

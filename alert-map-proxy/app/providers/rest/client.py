@@ -108,7 +108,7 @@ async def run_provider() -> None:  # noqa: C901
                 # Lock only when we actually have fresh data to process
                 config.cache_ready_event.clear()
 
-                if isinstance(raw_data_block, (list, dict)):
+                if isinstance(raw_data_block, list | dict):
                     processor.process_rest_update({"alerts": raw_data_block})
                 else:
                     processor.process_rest_update(elected_payload)
