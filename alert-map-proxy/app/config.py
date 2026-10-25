@@ -1,15 +1,17 @@
-import threading
+"""Alert Map Proxy Server - Configuration."""
+
+import logging
 import os
+import threading
 from datetime import datetime
 from zoneinfo import ZoneInfo
-import logging
 
 # --- SYSTEM WATCHDOG & HTTP CONFIGURATION CONSTANTS ---
 # Timezone identifier used across the entire telemetry engine
 SYSTEM_TIMEZONE_NAME = "Europe/Kyiv"
 
 # HTTP server deployment network settings
-HTTP_SERVER_HOST = "0.0.0.0"
+HTTP_SERVER_HOST = "0.0.0.0"  # noqa: S104
 HTTP_SERVER_PORT = 5550
 HTTP_SERVER_ENGINE = "paste"
 HTTP_SERVER_QUIET_MODE = True
@@ -40,8 +42,6 @@ ACTIVE_PROVIDER = os.getenv("PROXY_PROVIDER", "neptun").strip().lower()
 EXTENDED_MAPPING_MATRIX = {
     "м. Київ": [31],
     "Київська обл.": [14, 77, 73, 75, 76, 74, 750, 8888, 79, 78, 31],
-    "м. Черкаси": [1473],
-    "Черкаська обл.": [24, 153, 152, 150, 151, 1473],
     "м. Вінниця": [155],
     "Вінницька обл.": [4, 32, 35, 36, 34, 33, 37, 155],
     "м. Луцьк": [225],
@@ -98,7 +98,7 @@ state_cache = {
             "alerts": {
                 "enabled": False,
                 "yellow": False,
-                "updated": None
+                "updated": None,
             },
             "threats": {
                 "artillery": False,
@@ -111,10 +111,11 @@ state_cache = {
                 "ballistic": False,
                 "explosions": False,
                 "recon": False,
-                "updated": None
-            }
-        } for region in EXTENDED_MAPPING_MATRIX.keys()
-    }
+                "updated": None,
+            },
+        }
+        for region in EXTENDED_MAPPING_MATRIX
+    },
 }
 
 # Thread synchronization event to prevent serving stale or empty cache during ingestion
@@ -129,16 +130,17 @@ ENV_LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 # --- CACHE PARSING ENGINE ---
 USE_AGGREGATION = os.environ.get("USE_AGGREGATION", "True").strip().lower() in ("true", "1", "yes")
 
+
 # --- LOGGING ---
 # Custom log filter to drop aggressive background HTTP traffic logs completely
 class SuppressWsgiFilter(logging.Filter):
-    def filter(self, record):
-        # Extract the formatted or raw string message content
-        msg = record.getMessage()
+    """Filter to suppress aggressive background HTTP traffic logs."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        """Supress WSGI messages in Debug Log."""
         # Drop logs if they contain standard web request markers or the consumer user-agent
-        if record.name == "wsgi" and record.levelno <= logging.INFO:
-            return False
-        return True
+        return not (record.name == "wsgi" and record.levelno <= logging.INFO)
+
 
 # Initialize global logging subsystem configurations
 root_logger = logging.getLogger()
@@ -148,7 +150,7 @@ handler.addFilter(SuppressWsgiFilter())
 logging.basicConfig(
     level=ENV_LOG_LEVEL,
     format="%(asctime)s [%(levelname)s] [%(name)s]: %(message)s",
-    handlers=[handler]
+    handlers=[handler],
 )
 
 # Shut down aggressive third-party debug noise modules by force

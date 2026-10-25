@@ -1,12 +1,16 @@
-from datetime import datetime
-import config
+"""Alert Map Proxy Server - REST Provider - Processor."""
+
 import logging
+from datetime import datetime
+
+import config
 
 # Initialize module-level logger dynamically based on the package namespace
 LOGGER = logging.getLogger(__name__)
 
-def parse_iso_time(time_str):
-    """Parses standard ISO timestamps directly into Europe/Kyiv zone."""
+
+def parse_iso_time(time_str: str | None) -> str | None:
+    """Parse standard ISO timestamps directly into Europe/Kyiv zone."""
     if not time_str:
         return None
     try:
@@ -19,8 +23,9 @@ def parse_iso_time(time_str):
     except ValueError:
         return None
 
-def normalize_name(name_str):
-    """Standardizes text string naming variations across multiple external API formats."""
+
+def normalize_name(name_str: str | None) -> str | None:
+    """Standardize text string naming variations across multiple external API formats."""
     if not name_str:
         return None
     stripped = name_str.strip()
@@ -34,8 +39,9 @@ def normalize_name(name_str):
         return stripped.replace("область", "обл.")
     return stripped
 
-def get_target_matrix_regions(region_name, region_type):
-    """Maps custom provider names and structural region types to internal matrix keys."""
+
+def get_target_matrix_regions(region_name: str | None, region_type: str | None) -> list[str]:  # noqa: ARG001, PLR0911
+    """Map custom provider names and structural region types to internal matrix keys."""
     if not region_name:
         return []
 
@@ -44,7 +50,7 @@ def get_target_matrix_regions(region_name, region_type):
     if norm_name in ("АР Крим"):
         return [norm_name]
 
-    # Strictly isolates city nodes by detecting "м. " prefix 
+    # Strictly isolates city nodes by detecting "м. " prefix
     is_city = norm_name.startswith("м. ")
     if is_city:
         # Clean prefix markers safely
@@ -64,45 +70,47 @@ def get_target_matrix_regions(region_name, region_type):
         # If the standalone city is not defined as an independent matrix node, drop it safely
         return []
 
+    # fmt: off
     # Complete strict relational district boundaries registry map
     district_to_oblast_map = {
         # Рівненська
         "Рівненський": "Рівненська обл.", "Вараський": "Рівненська обл.", "Сарненський": "Рівненська обл.", "Дубенський": "Рівненська обл.",
         # Харківська
-        "Чугуївський": "Харківська обл.", "Харківський": "Харківська обл.", "Лозівський": "Харківська обл.", "Богодухівський": "Харківська обл.", "Красноградський": "Харківська обл.", "Куп'янський": "Харківська обл.", "Ізюмський": "Харківська обл.", "Берестинський": "Харківська обл.",
+        "Чугуївський": "Харківська обл.", "Харківський": "Харківська обл.", "Лозівський": "Харківська обл.", "Богодухівський": "Харківська обл.", "Красноградський": "Харківська обл.", "Куп'янський": "Харківська обл.", "Ізюмський": "Харківська обл.", "Берестинський": "Харківська обл.",  # noqa: E501
         # Донецька
-        "Покровський": "Донецька обл.", "Краматорський": "Донецька обл.", "Кальміуський": "Донецька обл.", "Волноваський": "Донецька обл.", "Маріупольський": "Донецька обл.", "Бахмутський": "Донецька обл.", "Донецький": "Донецька обл.", "Горлівський": "Донецька обл.",
+        "Покровський": "Донецька обл.", "Краматорський": "Донецька обл.", "Кальміуський": "Донецька обл.", "Волноваський": "Донецька обл.", "Маріупольський": "Донецька обл.", "Бахмутський": "Донецька обл.", "Донецький": "Донецька обл.", "Горлівський": "Донецька обл.",  # noqa: E501
         # Запорізька
-        "Запорізький": "Запорізька обл.", "Мелітопольський": "Запорізька обл.", "Пологівський": "Запорізька обл.", "Василівський": "Запорізька обл.", "Бердянський": "Запорізька обл.",
+        "Запорізький": "Запорізька обл.", "Мелітопольський": "Запорізька обл.", "Пологівський": "Запорізька обл.", "Василівський": "Запорізька обл.", "Бердянський": "Запорізька обл.",  # noqa: E501
         # Сумська
-        "Шосткинський": "Сумська обл.", "Сумський": "Сумська обл.", "Охтирський": "Сумська обл.", "Конотопський": "Сумська обл.", "Роменський": "Сумська обл.",
+        "Шосткинський": "Сумська обл.", "Сумський": "Сумська обл.", "Охтирський": "Сумська обл.", "Конотопський": "Сумська обл.", "Роменський": "Сумська обл.",  # noqa: E501
         # Чернігівська
-        "Корюківський": "Чернігівська обл.", "Ніжинський": "Чернігівська обл.", "Чернігівський": "Чернігівська обл.", "Новгород-Сіверський": "Чернігівська обл.", "Прилуцький": "Чернігівська обл.",
+        "Корюківський": "Чернігівська обл.", "Ніжинський": "Чернігівська обл.", "Чернігівський": "Чернігівська обл.", "Новгород-Сіверський": "Чернігівська обл.", "Прилуцький": "Чернігівська обл.",  # noqa: E501
         # Київська
-        "Бориспільський": "Київська обл.", "Броварський": "Київська обл.", "Фастівський": "Київська обл.", "Бучанський": "Київська обл.", "Білоцерківський": "Київська обл.", "Обухівський": "Київська обл.", "Вишгородський": "Київська обл.",
+        "Бориспільський": "Київська обл.", "Броварський": "Київська обл.", "Фастівський": "Київська обл.", "Бучанський": "Київська обл.", "Білоцерківський": "Київська обл.", "Обухівський": "Київська обл.", "Вишгородський": "Київська обл.",  # noqa: E501
         # Полтавська
         "Полтавський": "Полтавська обл.", "Кременчуцький": "Полтавська обл.", "Миргородський": "Полтавська обл.", "Лубенський": "Полтавська обл.",
         # Вінницька
-        "Тульчинський": "Вінницька обл.", "Гайсинський": "Вінницька обл.", "Жмеринський": "Вінницька обл.", "Вінницький": "Вінницька обл.", "Хмільницький": "Вінницька обл.", "Могилів-Подільський": "Вінницька обл.",
+        "Тульчинський": "Вінницька обл.", "Гайсинський": "Вінницька обл.", "Жмеринський": "Вінницька обл.", "Вінницький": "Вінницька обл.", "Хмільницький": "Вінницька обл.", "Могилів-Подільський": "Вінницька обл.",  # noqa: E501
         # Черкаська
         "Золотоніський": "Черкаська обл.", "Черкаський": "Черкаська обл.", "Звенигородський": "Черкаська обл.", "Уманський": "Черкаська обл.",
         # Миколаївська
-        "Миколаївський": "Миколаївська обл.", "Баштанський": "Миколаївська обл.", "Вознесенський": "Миколаївська обл.", "Первомайський": "Миколаївська обл.",
+        "Миколаївський": "Миколаївська обл.", "Баштанський": "Миколаївська обл.", "Вознесенський": "Миколаївська обл.", "Первомайський": "Миколаївська обл.",  # noqa: E501
         # Одеська
-        "Одеський": "Одеська обл.", "Березівський": "Одеська обл.", "Подільський": "Одеська обл.", "Білгород-Дністровський": "Одеська обл.", "Ізмаїльський": "Одеська обл.", "Болградський": "Одеська обл.", "Роздільнянський": "Одеська обл.",
+        "Одеський": "Одеська обл.", "Березівський": "Одеська обл.", "Подільський": "Одеська обл.", "Білгород-Дністровський": "Одеська обл.", "Ізмаїльський": "Одеська обл.", "Болградський": "Одеська обл.", "Роздільнянський": "Одеська обл.",  # noqa: E501
         # Хмельницька
         "Хмельницький": "Хмельницька обл.", "Кам'янець-Подільський": "Хмельницька обл.", "Шепетівський": "Хмельницька обл.",
         # Волинська
         "Луцький": "Волинська обл.", "Володимирський": "Волинська обл.", "Камінь-Каширський": "Волинська обл.", "Ковельський": "Волинська обл.",
         # Дніпропетровська
-        "Дніпровський": "Дніпропетровська обл.", "Кам'янський": "Дніпропетровська обл.", "Криворізький": "Дніпропетровська обл.", "Нікопольський": "Дніпропетровська обл.", "Новомосковський": "Дніпропетровська обл.", "Самарівський": "Дніпропетровська обл.", "Павлоградський": "Дніпропетровська обл.", "Синельниківський": "Дніпропетровська обл.",
+        "Дніпровський": "Дніпропетровська обл.", "Кам'янський": "Дніпропетровська обл.", "Криворізький": "Дніпропетровська обл.", "Нікопольський": "Дніпропетровська обл.", "Новомосковський": "Дніпропетровська обл.", "Самарівський": "Дніпропетровська обл.", "Павлоградський": "Дніпропетровська обл.", "Синельниківський": "Дніпропетровська обл.",  # noqa: E501
         # Житомирська
-        "Житомирський": "Житомирська обл.", "Бердичівський": "Житомирська обл.", "Коростенський": "Житомирська обл.", "Звягельський": "Житомирська обл.",
+        "Житомирський": "Житомирська обл.", "Бердичівський": "Житомирська обл.", "Коростенський": "Житомирська обл.", "Звягельський": "Житомирська обл.",  # noqa: E501
         # Кіровоградська
-        "Кропивницький": "Кіровоградська обл.", "Олександрійський": "Кіровоградська обл.", "Голованівський": "Кіровоградська обл.", "Новоукраїнський": "Кіровоградська обл.",
+        "Кропивницький": "Кіровоградська обл.", "Олександрійський": "Кіровоградська обл.", "Голованівський": "Кіровоградська обл.", "Новоукраїнський": "Кіровоградська обл.",  # noqa: E501
         # Чернівецька
-        "Чернівецький": "Чернівецька обл.", "Вижницький": "Чернівецька обл.", "Дністровський": "Чернівецька обл."
+        "Чернівецький": "Чернівецька обл.", "Вижницький": "Чернівецька обл.", "Дністровський": "Чернівецька обл.",
     }
+    # fmt: on
 
     # Extract base dynamic token prefix name (e.g., 'Харківський')
     base_prefix = norm_name.split()[0] if norm_name and norm_name.split() else ""
@@ -116,15 +124,20 @@ def get_target_matrix_regions(region_name, region_type):
 
     return []
 
-def process_rest_update(payload_dict):
-    """Processes bulk REST data snapshot frames mapping onto systemic trees across 3 dynamic layouts."""
+
+def process_rest_update(payload_dict: dict) -> None:  # noqa: C901, PLR0912, PLR0915
+    """Process bulk REST data snapshot frames mapping onto systemic trees across 3 dynamic layouts."""
     kyiv_now = datetime.now(config.CURRENT_TZ).isoformat()
 
     packet_registry = {
         region_key: {
-            "has_red_air": False, "has_yellow_air": False,
-            "has_artillery": False, "has_urban": False, "latest_dt": None
-        } for region_key in config.EXTENDED_MAPPING_MATRIX.keys()
+            "has_red_air": False,
+            "has_yellow_air": False,
+            "has_artillery": False,
+            "has_urban": False,
+            "latest_dt": None,
+        }
+        for region_key in config.EXTENDED_MAPPING_MATRIX
     }
 
     raw_block = payload_dict.get("alerts", [])
@@ -167,10 +180,14 @@ def process_rest_update(payload_dict):
                                 continue
 
                             lvl_str = str(lvl.get("alertLevel", "")).upper()
-                            if lvl_str == "RED": packet_registry[key]["has_red_air"] = True
-                            elif lvl_str == "YELLOW": packet_registry[key]["has_yellow_air"] = True
-                    elif alert_type == "ARTILLERY": packet_registry[key]["has_artillery"] = True
-                    elif alert_type == "URBAN_FIGHTS": packet_registry[key]["has_urban"] = True
+                            if lvl_str == "RED":
+                                packet_registry[key]["has_red_air"] = True
+                            elif lvl_str == "YELLOW":
+                                packet_registry[key]["has_yellow_air"] = True
+                    elif alert_type == "ARTILLERY":
+                        packet_registry[key]["has_artillery"] = True
+                    elif alert_type == "URBAN_FIGHTS":
+                        packet_registry[key]["has_urban"] = True
 
     # --- GATE B: PROCESS SCHEME AIU (ALERTS.IN.UA FLAT ARRAY) ---
     elif is_scheme_aiu and isinstance(raw_block, list):
@@ -190,10 +207,14 @@ def process_rest_update(payload_dict):
                 if dt_object and (not packet_registry[key]["latest_dt"] or dt_object > packet_registry[key]["latest_dt"]):
                     packet_registry[key]["latest_dt"] = dt_object
                 if alert_type == "AIR_RAID":
-                    if lvl_str == "RED": packet_registry[key]["has_red_air"] = True
-                    elif lvl_str == "YELLOW": packet_registry[key]["has_yellow_air"] = True
-                elif alert_type == "ARTILLERY_SHELLING": packet_registry[key]["has_artillery"] = True
-                elif alert_type == "URBAN_FIGHTS": packet_registry[key]["has_urban"] = True
+                    if lvl_str == "RED":
+                        packet_registry[key]["has_red_air"] = True
+                    elif lvl_str == "YELLOW":
+                        packet_registry[key]["has_yellow_air"] = True
+                elif alert_type == "ARTILLERY_SHELLING":
+                    packet_registry[key]["has_artillery"] = True
+                elif alert_type == "URBAN_FIGHTS":
+                    packet_registry[key]["has_urban"] = True
 
     # --- GATE C: PROCESS SCHEME KLIMENKO (NESTED DICTIONARY KEY OBJECT) ---
     elif is_scheme_klimenko and isinstance(raw_block, dict):
@@ -208,8 +229,10 @@ def process_rest_update(payload_dict):
                 for key in target_keys:
                     if dt_object and (not packet_registry[key]["latest_dt"] or dt_object > packet_registry[key]["latest_dt"]):
                         packet_registry[key]["latest_dt"] = dt_object
-                    if lvl_str == "YELLOW": packet_registry[key]["has_yellow_air"] = True
-                    else: packet_registry[key]["has_red_air"] = True
+                    if lvl_str == "YELLOW":
+                        packet_registry[key]["has_yellow_air"] = True
+                    else:
+                        packet_registry[key]["has_red_air"] = True
 
             districts_block = oblast_node.get("districts", {})
             if isinstance(districts_block, dict):
@@ -224,8 +247,10 @@ def process_rest_update(payload_dict):
                         for key in target_keys:
                             if dt_object and (not packet_registry[key]["latest_dt"] or dt_object > packet_registry[key]["latest_dt"]):
                                 packet_registry[key]["latest_dt"] = dt_object
-                            if lvl_str == "YELLOW": packet_registry[key]["has_yellow_air"] = True
-                            else: packet_registry[key]["has_red_air"] = True
+                            if lvl_str == "YELLOW":
+                                packet_registry[key]["has_yellow_air"] = True
+                            else:
+                                packet_registry[key]["has_red_air"] = True
 
     # --- PHASE 3: COMMIT AGGREGATED METRICS TO GLOBAL STATE ---
     for region_key, metrics in packet_registry.items():

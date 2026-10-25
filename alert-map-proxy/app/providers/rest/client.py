@@ -1,44 +1,48 @@
+"""Alert Map Proxy Server - REST Provider - Client."""
+
 import asyncio
-import config
 import gzip
 import json
 import logging
 import urllib.request
 from datetime import datetime, timedelta
-from . import constants
-from . import processor
+
+import config
+
+from . import constants, processor
 
 # Initialize module-level logger dynamically based on the package namespace
 LOGGER = logging.getLogger(__name__)
 
-def fetch_http_sync(url_target):
-    """Performs block-free standard synchronized network descriptor lookups using full Chrome specs."""
+
+def fetch_http_sync(url_target: str) -> str:
+    """Perform block-free standard synchronized network descriptor lookups using full Chrome specs."""
     headers = {
         "User-Agent": constants.USER_AGENT,
         "Accept": "application/json, text/plain, */*",
         "Accept-Language": "uk-UA,uk;q=0.9,en-US;q=0.8,en;q=0.7",
         "Accept-Encoding": "gzip, deflate",
         "Cache-Control": "no-cache",
-        "Pragma": "no-cache"
+        "Pragma": "no-cache",
     }
 
-    req = urllib.request.Request(url_target, headers=headers)
-
-    with urllib.request.urlopen(req, timeout=10) as response:
+    req = urllib.request.Request(url_target, headers=headers)  # noqa: S310
+    with urllib.request.urlopen(req, timeout=10) as response:  # noqa: S310
         raw_bytes = response.read()
 
         # Dynamic transport layer decompression wrapper gate
         if response.info().get("Content-Encoding") == "gzip":
             try:
                 raw_bytes = gzip.decompress(raw_bytes)
-            except Exception as decomp_err:
-                LOGGER.error("❌ [REST] Failed to decompress incoming gzip stream payload: %s", decomp_err)
+            except Exception:
+                LOGGER.exception("❌ [REST] Failed to decompress incoming gzip stream payload:")
                 return ""
 
         return raw_bytes.decode("utf-8")
 
-async def run_provider():
-    """Main lifecycle loop handling fallback multi-source polling based on 5-minute data freshness."""
+
+async def run_provider() -> None:  # noqa: C901
+    """Run the main lifecycle loop handling fallback multi-source polling based on 5-minute data freshness."""
     LOGGER.info("🤖 Booting Multi-Source REST Engine with Dynamic Fallback Strategy (%d-min freshness threshold)...", constants.MAX_CACHE_AGE_MINUTES)
     loop = asyncio.get_running_loop()
 
@@ -75,11 +79,11 @@ async def run_provider():
                             elected_url_source = url_target
                             # Break sequential polling loop early since a valid primary leader is found
                             break
-                        else:
-                            LOGGER.debug(
-                                "⏳ Data from '%s' is stale (age: %s). Proceeding to fallback endpoint.", 
-                                url_target, data_age
-                            )
+                        LOGGER.debug(
+                            "⏳ Data from '%s' is stale (age: %s). Proceeding to fallback endpoint.",
+                            url_target,
+                            data_age,
+                        )
 
                     except ValueError:
                         # Fallback parsing strategy if timestamp format gets malformed by upstream proxy wrappers
@@ -87,7 +91,7 @@ async def run_provider():
                         elected_url_source = url_target
                         break
 
-            except Exception as source_fault:
+            except Exception as source_fault:  # noqa: BLE001
                 LOGGER.debug("🐛 [REST] Endpoint '%s' temporarily unreachable: %s", url_target, source_fault)
 
             # Inter-request delay throttle constraint to prevent CDN rate limiting blocks during fallback routine
@@ -104,18 +108,16 @@ async def run_provider():
                 # Lock only when we actually have fresh data to process
                 config.cache_ready_event.clear()
 
-                if isinstance(raw_data_block, list):
-                    processor.process_rest_update({"alerts": raw_data_block})
-                elif isinstance(raw_data_block, dict):
+                if isinstance(raw_data_block, (list, dict)):
                     processor.process_rest_update({"alerts": raw_data_block})
                 else:
                     processor.process_rest_update(elected_payload)
-            except Exception as update_err:
-                LOGGER.error("❌ [REST] Ingestion pipeline failed during cache processing: %s", update_err)
+            except Exception:
+                LOGGER.exception("❌ [REST] Ingestion pipeline failed during cache processing:")
         else:
             LOGGER.error(
                 "💥 [REST] Critical connectivity failure: All endpoints are offline or serving stale data (> %d min).",
-                constants.MAX_CACHE_AGE_MINUTES
+                constants.MAX_CACHE_AGE_MINUTES,
             )
 
         # Safely release the HTTP threads in any scenario (success or failure)

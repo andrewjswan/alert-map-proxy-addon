@@ -1,3 +1,5 @@
+"""Alert Map Proxy Server - JAAM Provider - Constants."""
+
 import os
 
 # WebSocket connection URL for JAAM platform
@@ -5,6 +7,8 @@ URI = os.getenv("PROXY_ALERT_URL", "ws://ws.jaam.net.ua:80/data_fusion_v1")
 
 # Handshake configuration properties
 CURRENT_VERSION = f"AMP-{os.getenv('PROXY_VERSION', '2026.10.0')}"  # JAAM firmware version
+
+# fmt: off
 
 # --- BINARY ARCHITECTURE FUSION HEADERS ---
 TYPE_ALERTS_BATCH               = 0xA1   # 161: Main stream for country-wide alert snapshots
@@ -29,3 +33,5 @@ BIT_EXPLOSION    = 1 << 9       # 512: Verified dynamic kinetic impact event det
 BIT_RECON_DRONES = 1 << 10      # 1024: Strategic surveillance reconnaissance drone active
 BIT_ALERT_LOW    = 1 << 11      # 2048: Silent/Low-level air alert status trigger
 BIT_ALERT_HIGH   = 1 << 12      # 4096: High-level primary air alert siren trigger
+
+# fmt: on

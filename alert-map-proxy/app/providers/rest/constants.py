@@ -1,7 +1,16 @@
+"""Alert Map Proxy Server - REST Provider - Constants."""
+
 import os
 
 # Parse and build dynamic URI tracking array splitting the environment token stream directly
-URI_LIST = [url.strip() for url in os.getenv("PROXY_ALERT_URL", "https://ubilling.net.ua/aerialalerts/?source=klimenko&raw|https://ubilling.net.ua/aerialalerts/?source=aiu&raw|https://ubilling.net.ua/aerialalerts/?source=ual&raw").split("|") if url.strip()]
+URI_LIST = [
+    url.strip()
+    for url in os.getenv(
+        "PROXY_ALERT_URL",
+        "https://ubilling.net.ua/aerialalerts/?source=klimenko&raw|https://ubilling.net.ua/aerialalerts/?source=aiu&raw|https://ubilling.net.ua/aerialalerts/?source=ual&raw",
+    ).split("|")
+    if url.strip()
+]
 
 # Polling interval rate in seconds to prevent server rate limiting
 POLL_INTERVAL_SEC = 3

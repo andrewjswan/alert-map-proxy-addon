@@ -1,3 +1,5 @@
+"""Alert Map Proxy Server - Neptun Provider - Constants."""
+
 import os
 
 # Secure stream endpoint for Neptun engine platform

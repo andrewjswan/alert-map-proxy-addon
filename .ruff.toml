@@ -1,7 +1,7 @@
 target-version = "py313"
 
 # Allow lines to be as long as 100.
-line-length = 100
+line-length = 150
 
 [lint]
 select = [
@@ -10,9 +10,11 @@ select = [
 
 ignore = [
     "ANN401", # Dynamically typed expressions (typing.Any) are disallowed
+    "CPY001", # Missing copyright notice at top of file
     "D203", # no-blank-line-before-class (incompatible with formatter)
     "D212", # multi-line-summary-first-line (incompatible with formatter)
     "FIX002", # Line contains TODO, consider resolving an issue
     "TD003", # Missing issue link on the line following this TODO
-    "N999" # Invalid module name: 'esphome-update'
+    "N999", # Invalid module name: 'esphome-update'
+    "RUF001" # String contains ambiguous `.` (CYRILLIC CAPITAL LETTER ...). Did you mean `.` (LATIN CAPITAL LETTER ...)?
 ]
