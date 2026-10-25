@@ -2,6 +2,8 @@
 
 import os
 
+# REST API Documentation: https://wiki.ubilling.net.ua/doku.php?id=aerialalertsapi
+
 # Parse and build dynamic URI tracking array splitting the environment token stream directly
 URI_LIST = [
     url.strip()
