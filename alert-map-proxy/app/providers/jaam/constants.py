@@ -2,7 +2,7 @@
 
 import os
 
-# JAAM API Documentation: https://info.jaam.net.ua/fusion/api/server-api/
+# JAAM API Documentation: https://info.jaam.net.ua/api/
 
 # WebSocket connection URL for JAAM platform
 URI = os.getenv("PROXY_ALERT_URL", "wss://ws.jaam.net.ua/data_service_v1")
