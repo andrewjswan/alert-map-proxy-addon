@@ -83,8 +83,8 @@ async def receive_messages(websocket: websockets.WebSocketClientProtocol) -> Non
                     "🚨 [JAAM] Watchdog: No telemetry data for %d minutes. Force-dropping stalled socket connection...",
                     int(minutes_since_pulse),
                 )
-                # Raising an exception breaks the current execution block and forces a clean reconnection lifecycle
-                raise websockets.exceptions.ConnectionClosed(None, None) from None
+                # Exit the read loop so the context manager cleanly closes the socket and triggers reconnect
+                return
             continue
 
 
