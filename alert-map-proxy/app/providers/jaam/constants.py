@@ -2,13 +2,13 @@
 
 import os
 
-# JAAM API Documentation: https://info.jaam.net.ua/fusion/api/server-api/
+# JAAM API Documentation: https://info.jaam.net.ua/api/
 
 # WebSocket connection URL for JAAM platform
-URI = os.getenv("PROXY_ALERT_URL", "ws://ws.jaam.net.ua:80/data_fusion_v1")
+URI = os.getenv("PROXY_ALERT_URL", "wss://ws.jaam.net.ua/data_service_v1")
 
 # Handshake configuration properties
-CURRENT_VERSION = f"AMP-{os.getenv('PROXY_VERSION', '2026.10.0')}"  # JAAM firmware version
+CURRENT_VERSION = f"{os.getenv('PROXY_VERSION', '2026.11.0')}"  # Service version for JAAM handshake
 
 # fmt: off
 

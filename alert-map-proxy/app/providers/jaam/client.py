@@ -1,6 +1,7 @@
 """Alert Map Proxy Server - JAAM Provider - Client."""
 
 import asyncio
+import json
 import logging
 import random
 import time
@@ -16,15 +17,11 @@ from . import constants, processor
 LOGGER = logging.getLogger(__name__)
 
 
-def get_dynamic_chip_id() -> str:
-    """Generate a hardware-compliant client hex token."""
+def get_device_uuid() -> str:
+    """Generate a deterministic UUID from the hardware MAC address."""
     mac_int = uuid.getnode()
-    mac_bytes = mac_int.to_bytes(6, byteorder="big")
-    padded_mac = mac_bytes + b"\x00\x00"
-    efuse_mac = int.from_bytes(padded_mac, byteorder="little")
-    high_bits = (efuse_mac >> 32) & 0xFFFFFFFF
-    low_bits = efuse_mac & 0xFFFFFFFF
-    return f"{high_bits:04x}{low_bits:04x}"[:12]
+    mac_hex = f"{mac_int:012x}"
+    return str(uuid.uuid5(uuid.NAMESPACE_OID, mac_hex))
 
 
 async def receive_messages(websocket: websockets.WebSocketClientProtocol) -> None:
@@ -87,15 +84,27 @@ async def receive_messages(websocket: websockets.WebSocketClientProtocol) -> Non
                     "🚨 [JAAM] Watchdog: No telemetry data for %d minutes. Force-dropping stalled socket connection...",
                     int(minutes_since_pulse),
                 )
-                # Raising an exception breaks the current execution block and forces a clean reconnection lifecycle
-                raise websockets.exceptions.ConnectionClosed(None, None) from None
+                # Exit the read loop so the context manager cleanly closes the socket and triggers reconnect
+                return
             continue
 
 
 async def run_provider() -> None:
     """Execute the main lifecycle loop for the JAAM provider."""
-    chip_id = get_dynamic_chip_id()
-    LOGGER.info("🤖 Booting JAAM client engine. ID: %s FW: %s", chip_id, constants.CURRENT_VERSION)
+    apps_uuid = get_device_uuid()
+    LOGGER.info("🤖 Booting JAAM client engine. ID: %s FW: %s", apps_uuid, constants.CURRENT_VERSION)
+
+    hello_msg = "hello:" + json.dumps(
+        {
+            "service_id": "alert-map-proxy",
+            "client_id": apps_uuid,
+            "name": "Alert Map Proxy",
+            "website": "https://github.com/andrewjswan/alert-map-proxy-addon",
+            "contact": "@andrewjswan",
+            "version": constants.CURRENT_VERSION,
+        },
+        ensure_ascii=False,
+    )
 
     delay = config.PIPELINE_RECONNECT_DELAY_SEC
     while True:
@@ -115,8 +124,7 @@ async def run_provider() -> None:
                 processor.reset_jaam_cache()
                 LOGGER.info("🧹 [JAAM] Telemetry state and region caches successfully synchronized to pristine state.")
 
-                await websocket.send(f"chip_id:{chip_id}")
-                await websocket.send(f"firmware:{constants.CURRENT_VERSION}")
+                await websocket.send(hello_msg)
 
                 LOGGER.info("🚀 [JAAM] Client handshake verified. Pipeline online for JAAM.")
                 # Read loop execution keeps context busy here
@@ -124,6 +132,8 @@ async def run_provider() -> None:
 
         except websockets.exceptions.ConnectionClosed as e:
             LOGGER.warning("⚠️ [JAAM] Pipeline connection closed by server. Code: %d, Reason: '%s'", e.code, e.reason)
+            if e.rcvd and e.rcvd.code in (1008, 4403):
+                delay = 300.0
 
         except Exception:
             LOGGER.exception("💥 [JAAM] Connection lost or error:")

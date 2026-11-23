@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026.11.1 - 2026-11-23
+
+- JAAM Provider: Migrate to `data_service_v1` handshake and UUID client ID⁠
+
 ## 2026.10.9 - 2026-10-25
 
 - Publish to Github
