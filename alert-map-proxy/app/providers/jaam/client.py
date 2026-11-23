@@ -17,10 +17,10 @@ LOGGER = logging.getLogger(__name__)
 
 
 def get_device_uuid() -> str:
-  """Generate a deterministic UUID from the hardware MAC address."""
-  mac_int = uuid.getnode()
-  mac_hex = f"{mac_int:012x}"
-  return str(uuid.uuid5(uuid.NAMESPACE_OID, mac_hex))
+    """Generate a deterministic UUID from the hardware MAC address."""
+    mac_int = uuid.getnode()
+    mac_hex = f"{mac_int:012x}"
+    return str(uuid.uuid5(uuid.NAMESPACE_OID, mac_hex))
 
 
 async def receive_messages(websocket: websockets.WebSocketClientProtocol) -> None:
